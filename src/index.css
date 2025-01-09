@@ -1,73 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
- 
-@layer base {
-  :root {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
- 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
- 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
- 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
- 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
- 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
- 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
- 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
- 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-  }
-}
+body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #1a1a1a;
+      color: #e0e0e0;
+    }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-.media-grid {
-  @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4;
-}
-
-.media-item {
-  @apply relative aspect-square overflow-hidden rounded-lg transition-transform hover:scale-105;
-}
-
-.media-thumbnail {
-  @apply w-full h-full object-cover;
-}
-
-.navigation-arrow {
-  @apply fixed top-1/2 -translate-y-1/2 bg-black/50 p-4 text-white rounded-full 
-         opacity-0 transition-opacity duration-200 hover:bg-black/70 cursor-pointer;
-}
-
-.media-container:hover .navigation-arrow {
-  @apply opacity-100;
-}
-
-.media-view {
-  @apply fixed inset-0 bg-background flex items-center justify-center;
-}
-
-.media-content {
-  @apply max-h-screen max-w-screen-xl mx-auto relative;
-}
+    h1 {
+      text-align: center;
+      color: #fff;
+      padding: 20px 0;
+    }
