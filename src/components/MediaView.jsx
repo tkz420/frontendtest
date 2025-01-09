@@ -65,18 +65,18 @@ import React, { useState, useEffect } from 'react';
       }, [currentIndex, mediaItems]);
 
       const handlePrev = () => {
-        if (currentIndex > 0) {
-          const prevIndex = currentIndex - 1;
-          setCurrentIndex(prevIndex);
-          navigate(`/${mediaItems[prevIndex].id}`);
-        }
-      };
-
-      const handleNext = () => {
         if (currentIndex < mediaItems.length - 1) {
           const nextIndex = currentIndex + 1;
           setCurrentIndex(nextIndex);
           navigate(`/${mediaItems[nextIndex].id}`);
+        }
+      };
+
+      const handleNext = () => {
+        if (currentIndex > 0) {
+          const prevIndex = currentIndex - 1;
+          setCurrentIndex(prevIndex);
+          navigate(`/${mediaItems[prevIndex].id}`);
         }
       };
 
@@ -102,7 +102,7 @@ import React, { useState, useEffect } from 'react';
             {mediaLoaded && (
               <span
                 className={`nav-arrow prev ${currentIndex === 0 ? 'disabled' : ''}`}
-                onClick={handlePrev}
+                onClick={handleNext}
                 style={{ display: currentIndex === 0 ? 'none' : 'block' }}
               >
                 <FontAwesomeIcon icon={faChevronLeft} />
@@ -116,7 +116,7 @@ import React, { useState, useEffect } from 'react';
             {mediaLoaded && (
               <span
                 className={`nav-arrow next ${currentIndex === mediaItems.length - 1 ? 'disabled' : ''}`}
-                onClick={handleNext}
+                onClick={handlePrev}
                 style={{ display: currentIndex === mediaItems.length - 1 ? 'none' : 'block' }}
               >
                 <FontAwesomeIcon icon={faChevronRight} />

@@ -1,7 +1,6 @@
 .media-item {
       background-color: #2a2a2a;
       border-radius: 8px;
-      padding: 10px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       text-align: center;
       transition: transform 0.2s ease-in-out;
@@ -20,4 +19,5 @@
       max-width: 100%;
       max-height: 100%;
       object-fit: cover;
+      display: block;
     }
