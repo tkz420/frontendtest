@@ -59,22 +59,22 @@ import React, { useState, useEffect } from 'react';
       const handlePrev = () => {
         if (!mediaItem) return;
         const currentId = parseInt(mediaItem.id);
-        const prevItem = mediaItems
-          .filter(item => item.id < currentId)
-          .sort((a, b) => b.id - a.id)[0];
-        if (prevItem) {
-          navigate(`/${prevItem.id}`);
+        const nextItem = mediaItems
+          .filter(item => item.id > currentId)
+          .sort((a, b) => a.id - b.id)[0];
+        if (nextItem) {
+          navigate(`/${nextItem.id}`);
         }
       };
 
       const handleNext = () => {
         if (!mediaItem) return;
         const currentId = parseInt(mediaItem.id);
-        const nextItem = mediaItems
-          .filter(item => item.id > currentId)
-          .sort((a, b) => a.id - b.id)[0];
-        if (nextItem) {
-          navigate(`/${nextItem.id}`);
+        const prevItem = mediaItems
+          .filter(item => item.id < currentId)
+          .sort((a, b) => b.id - a.id)[0];
+        if (prevItem) {
+          navigate(`/${prevItem.id}`);
         }
       };
 
@@ -100,7 +100,7 @@ import React, { useState, useEffect } from 'react';
             {mediaLoaded && (
               <span
                 className={`nav-arrow prev ${!mediaItems.some(item => item.id < parseInt(mediaItem.id)) ? 'disabled' : ''}`}
-                onClick={handlePrev}
+                onClick={handleNext}
                 style={{ display: !mediaItems.some(item => item.id < parseInt(mediaItem.id)) ? 'none' : 'block' }}
               >
                 <FontAwesomeIcon icon={faChevronLeft} />
@@ -114,7 +114,7 @@ import React, { useState, useEffect } from 'react';
             {mediaLoaded && (
               <span
                 className={`nav-arrow next ${!mediaItems.some(item => item.id > parseInt(mediaItem.id)) ? 'disabled' : ''}`}
-                onClick={handleNext}
+                onClick={handlePrev}
                 style={{ display: !mediaItems.some(item => item.id > parseInt(mediaItem.id)) ? 'none' : 'block' }}
               >
                 <FontAwesomeIcon icon={faChevronRight} />
