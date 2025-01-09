@@ -109,7 +109,7 @@ import React, { useState, useEffect } from 'react';
             {isImage ? (
               <img src={storageUrl} alt={mediaItem.url} className="media-image" onLoad={() => setMediaLoaded(true)} onError={() => setMediaError('Failed to load media.')} />
             ) : (
-              <MediaPlayer url={storageUrl} type={mediaItem.type} />
+              <MediaPlayer url={mediaItem.storage_path} type={mediaItem.type} />
             )}
             {mediaLoaded && (
               <span

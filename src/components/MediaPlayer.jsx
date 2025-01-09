@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
     import './MediaPlayer.css';
     import 'video.js/dist/video-js.css';
+    import supabase from '../utils/supabaseClient';
 
     function MediaPlayer({ url, type }) {
       const audioRef = useRef(null);
@@ -10,11 +11,27 @@ import React, { useState, useRef, useEffect } from 'react';
       const [duration, setDuration] = useState(0);
       const [mediaError, setMediaError] = useState(null);
       const [fallbackImage, setFallbackImage] = useState(null);
+      const [mediaUrl, setMediaUrl] = useState(null);
+
+      useEffect(() => {
+        const fetchMediaUrl = async () => {
+          try {
+            const { data } = supabase.storage.from('media').getPublicUrl(url);
+            setMediaUrl(data.publicUrl);
+          } catch (error) {
+            console.error('Error fetching media URL:', error);
+            setMediaError('Failed to load media.');
+            setFallbackImage('/fallback-image.png');
+          }
+        };
+
+        fetchMediaUrl();
+      }, [url]);
 
       useEffect(() => {
         const audio = audioRef.current;
         const video = videoRef.current;
-        if (!audio && !video) return;
+        if (!audio && !video || !mediaUrl) return;
 
         const handleTimeUpdate = () => {
           if (audio) {
@@ -68,7 +85,7 @@ import React, { useState, useRef, useEffect } from 'react';
             video.removeEventListener('error', handleError);
           };
         }
-      }, [url]);
+      }, [mediaUrl]);
 
       const handlePlayPause = () => {
         const audio = audioRef.current;
@@ -124,7 +141,7 @@ import React, { useState, useRef, useEffect } from 'react';
       if (isAudio) {
         return (
           <div className="audio-player">
-            <audio ref={audioRef} src={url} />
+            <audio ref={audioRef} src={mediaUrl} />
             <div className="audio-controls">
               <button onClick={handlePlayPause}>
                 {isPlaying ? 'Pause' : 'Play'}
@@ -143,7 +160,7 @@ import React, { useState, useRef, useEffect } from 'react';
       } else {
         return (
           <div className="media-player">
-            <video ref={videoRef} controls src={url} className="video-player" onError={e => {setMediaError('Failed to load video.'); setFallbackImage('/fallback-image.png')}} />
+            <video ref={videoRef} controls src={mediaUrl} className="video-player" onError={e => {setMediaError('Failed to load video.'); setFallbackImage('/fallback-image.png')}} />
             {fallbackImage && <img src={fallbackImage} alt="Fallback" style={{ maxWidth: '100px' }} />}
           </div>
         );
