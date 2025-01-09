@@ -1,20 +1,26 @@
-import { Routes, Route } from 'react-router-dom'
-    import Home from './pages/Home'
-    import MediaView from './pages/MediaView'
-    import NotFound from './pages/NotFound'
-    import Navbar from './components/Navbar'
+import React from 'react';
+    import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+    import Gallery from './components/Gallery';
+    import MediaView from './components/MediaView';
+    import NotFound from './components/NotFound';
 
     function App() {
       return (
-        <div className="app">
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/:id" element={<MediaView />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
-      )
+        <Router>
+          <div className="App">
+            <h1 style={{cursor: 'pointer'}}>
+              <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+                b0ard
+              </Link>
+            </h1>
+            <Routes>
+              <Route path="/" element={<Gallery />} />
+              <Route path="/:id" element={<MediaView />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
+        </Router>
+      );
     }
 
-    export default App
+    export default App;

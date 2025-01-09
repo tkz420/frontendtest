@@ -12,14 +12,13 @@ import React, { useState, useEffect } from 'react';
       const [mediaItem, setMediaItem] = useState(null);
       const [loading, setLoading] = useState(true);
       const [mediaItems, setMediaItems] = useState([]);
+      const [currentIndex, setCurrentIndex] = useState(0);
       const [mediaLoaded, setMediaLoaded] = useState(false);
-      const [mediaError, setMediaError] = useState(null);
 
       useEffect(() => {
         const fetchMedia = async () => {
           setLoading(true);
           setMediaLoaded(false);
-          setMediaError(null);
           try {
             const { data, error } = await supabase
               .from('media_items')
@@ -27,21 +26,20 @@ import React, { useState, useEffect } from 'react';
               .order('id', { ascending: true });
             if (error) {
               console.error('Error fetching data:', error);
-              setMediaError('Failed to load media items.');
             } else {
               setMediaItems(data);
-              const currentItem = data.find(item => item.id === parseInt(id));
-              if (currentItem) {
-                setMediaItem(currentItem);
+              const index = data.findIndex(item => item.id === parseInt(id));
+              if (index !== -1) {
+                setCurrentIndex(index);
+                setMediaItem(data[index]);
               } else {
-                setMediaItem(null);
+                 setMediaItem(null);
                 console.error('Media item not found');
                 navigate('/not-found');
               }
             }
           } catch (error) {
             console.error('Error fetching data:', error);
-            setMediaError('Failed to load media items.');
           } finally {
             setLoading(false);
           }
@@ -56,34 +54,30 @@ import React, { useState, useEffect } from 'react';
         }
       }, [mediaItem]);
 
+      useEffect(() => {
+        if (mediaItems.length > 0 && currentIndex >= 0 && currentIndex < mediaItems.length) {
+          setMediaItem(mediaItems[currentIndex]);
+        }
+      }, [currentIndex, mediaItems]);
+
       const handlePrev = () => {
-        if (!mediaItem) return;
-        const currentId = parseInt(mediaItem.id);
-        const nextItem = mediaItems
-          .filter(item => item.id > currentId)
-          .sort((a, b) => a.id - b.id)[0];
-        if (nextItem) {
-          navigate(`/${nextItem.id}`);
+        if (currentIndex > 0) {
+          const prevIndex = currentIndex - 1;
+          setCurrentIndex(prevIndex);
+          navigate(`/${mediaItems[prevIndex].id}`);
         }
       };
 
       const handleNext = () => {
-        if (!mediaItem) return;
-        const currentId = parseInt(mediaItem.id);
-        const prevItem = mediaItems
-          .filter(item => item.id < currentId)
-          .sort((a, b) => b.id - a.id)[0];
-        if (prevItem) {
-          navigate(`/${prevItem.id}`);
+        if (currentIndex < mediaItems.length - 1) {
+          const nextIndex = currentIndex + 1;
+          setCurrentIndex(nextIndex);
+          navigate(`/${mediaItems[nextIndex].id}`);
         }
       };
 
       if (loading) {
         return <p>Loading...</p>;
-      }
-
-      if (mediaError) {
-        return <p>{mediaError}</p>;
       }
 
       if (!mediaItem) {
@@ -99,23 +93,23 @@ import React, { useState, useEffect } from 'react';
           <div className="media-display">
             {mediaLoaded && (
               <span
-                className={`nav-arrow prev ${!mediaItems.some(item => item.id < parseInt(mediaItem.id)) ? 'disabled' : ''}`}
-                onClick={handleNext}
-                style={{ display: !mediaItems.some(item => item.id < parseInt(mediaItem.id)) ? 'none' : 'block' }}
+                className={`nav-arrow prev ${currentIndex === 0 ? 'disabled' : ''}`}
+                onClick={handlePrev}
+                style={{ display: currentIndex === 0 ? 'none' : 'block' }}
               >
                 <FontAwesomeIcon icon={faChevronLeft} />
               </span>
             )}
             {isImage ? (
-              <img src={storageUrl} alt={mediaItem.url} className="media-image" onLoad={() => setMediaLoaded(true)} onError={() => setMediaError('Failed to load media.')} />
+              <img src={storageUrl} alt={mediaItem.url} className="media-image" onLoad={() => setMediaLoaded(true)} />
             ) : (
-              <MediaPlayer url={mediaItem.storage_path} type={mediaItem.type} />
+              <MediaPlayer url={storageUrl} type={mediaItem.type} />
             )}
             {mediaLoaded && (
               <span
-                className={`nav-arrow next ${!mediaItems.some(item => item.id > parseInt(mediaItem.id)) ? 'disabled' : ''}`}
-                onClick={handlePrev}
-                style={{ display: !mediaItems.some(item => item.id > parseInt(mediaItem.id)) ? 'none' : 'block' }}
+                className={`nav-arrow next ${currentIndex === mediaItems.length - 1 ? 'disabled' : ''}`}
+                onClick={handleNext}
+                style={{ display: currentIndex === mediaItems.length - 1 ? 'none' : 'block' }}
               >
                 <FontAwesomeIcon icon={faChevronRight} />
               </span>

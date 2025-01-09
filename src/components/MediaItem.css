@@ -1,14 +1,10 @@
 .media-item {
       background-color: #2a2a2a;
       border-radius: 8px;
+      padding: 10px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       text-align: center;
       transition: transform 0.2s ease-in-out;
-      aspect-ratio: 1 / 1;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .media-item:hover {
@@ -17,7 +13,5 @@
 
     .media-item img {
       max-width: 100%;
-      max-height: 100%;
-      object-fit: cover;
-      display: block;
+      height: auto;
     }

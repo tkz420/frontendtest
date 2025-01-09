@@ -1,170 +1,136 @@
-import React, { useState, useRef, useEffect } from 'react';
-    import './MediaPlayer.css';
-    import 'video.js/dist/video-js.css';
+    import React, { useState, useEffect } from 'react';
+    import { useParams, useNavigate } from 'react-router-dom';
     import supabase from '../utils/supabaseClient';
+    import './MediaView.css';
+    import MediaPlayer from './MediaPlayer';
+    import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+    import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 
-    function MediaPlayer({ url, type }) {
-      const audioRef = useRef(null);
-      const videoRef = useRef(null);
-      const [isPlaying, setIsPlaying] = useState(false);
-      const [currentTime, setCurrentTime] = useState(0);
-      const [duration, setDuration] = useState(0);
-      const [mediaError, setMediaError] = useState(null);
-      const [fallbackImage, setFallbackImage] = useState(null);
-      const [mediaUrl, setMediaUrl] = useState(null);
+    function MediaView() {
+      const { id } = useParams();
+      const navigate = useNavigate();
+      const [mediaItem, setMediaItem] = useState(null);
+      const [loading, setLoading] = useState(true);
+      const [mediaItems, setMediaItems] = useState([]);
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const [mediaLoaded, setMediaLoaded] = useState(false);
 
       useEffect(() => {
-        const fetchMediaUrl = async () => {
+        const fetchMedia = async () => {
+          setLoading(true);
+          setMediaLoaded(false);
           try {
-            const { data } = supabase.storage.from('media').getPublicUrl(url);
-            setMediaUrl(data.publicUrl);
+            const { data, error } = await supabase
+              .from('media_items')
+              .select('*')
+              .order('id', { ascending: true });
+            if (error) {
+              console.error('Error fetching data:', error);
+            } else {
+              setMediaItems(data);
+              const index = data.findIndex(item => item.id === parseInt(id));
+              if (index !== -1) {
+                setCurrentIndex(index);
+                setMediaItem(data[index]);
+              } else {
+                 setMediaItem(null);
+                console.error('Media item not found');
+                navigate('/not-found');
+              }
+            }
           } catch (error) {
-            console.error('Error fetching media URL:', error);
-            setMediaError('Failed to load media.');
-            setFallbackImage('/fallback-image.png');
+            console.error('Error fetching data:', error);
+          } finally {
+            setLoading(false);
           }
         };
 
-        fetchMediaUrl();
-      }, [url]);
+        fetchMedia();
+      }, [id, navigate]);
 
       useEffect(() => {
-        const audio = audioRef.current;
-        const video = videoRef.current;
-        if (!audio && !video || !mediaUrl) return;
-
-        const handleTimeUpdate = () => {
-          if (audio) {
-            setCurrentTime(audio.currentTime);
-          } else if (video) {
-            setCurrentTime(video.currentTime);
-          }
-        };
-
-        const handleLoadedMetadata = () => {
-          if (audio) {
-            setDuration(audio.duration);
-          } else if (video) {
-            setDuration(video.duration);
-          }
-        };
-
-        const handleEnded = () => {
-          setIsPlaying(false);
-          setCurrentTime(0);
-        };
-
-        const handleError = (e) => {
-          console.error('Media loading error:', e);
-          setMediaError('Failed to load media.');
-          setFallbackImage('/fallback-image.png');
-        };
-
-        if (audio) {
-          audio.addEventListener('timeupdate', handleTimeUpdate);
-          audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-          audio.addEventListener('ended', handleEnded);
-          audio.addEventListener('error', handleError);
-
-          return () => {
-            audio.removeEventListener('timeupdate', handleTimeUpdate);
-            audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-            audio.removeEventListener('ended', handleEnded);
-            audio.removeEventListener('error', handleError);
-          };
-        } else if (video) {
-          video.addEventListener('timeupdate', handleTimeUpdate);
-          video.addEventListener('loadedmetadata', handleLoadedMetadata);
-          video.addEventListener('ended', handleEnded);
-          video.addEventListener('error', handleError);
-
-          return () => {
-            video.removeEventListener('timeupdate', handleTimeUpdate);
-            video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-            video.removeEventListener('ended', handleEnded);
-            video.removeEventListener('error', handleError);
-          };
+        if (mediaItem) {
+          setMediaLoaded(true);
         }
-      }, [mediaUrl]);
+      }, [mediaItem]);
 
-      const handlePlayPause = () => {
-        const audio = audioRef.current;
-        const video = videoRef.current;
-
-        if (audio) {
-          if (isPlaying) {
-            audio.pause();
-          } else {
-            audio.play();
-          }
-        } else if (video) {
-          if (isPlaying) {
-            video.pause();
-          } else {
-            video.play();
-          }
+      useEffect(() => {
+        if (mediaItems.length > 0 && currentIndex >= 0 && currentIndex < mediaItems.length) {
+          setMediaItem(mediaItems[currentIndex]);
         }
-        setIsPlaying(!isPlaying);
-      };
+      }, [currentIndex, mediaItems]);
 
-      const handleSeek = (e) => {
-        const audio = audioRef.current;
-        const video = videoRef.current;
-        const seekTime = parseFloat(e.target.value);
-
-        if (audio) {
-          audio.currentTime = seekTime;
-          setCurrentTime(seekTime);
-        } else if (video) {
-          video.currentTime = seekTime;
-          setCurrentTime(seekTime);
+      const handlePrev = () => {
+        if (currentIndex > 0) {
+          const prevIndex = currentIndex - 1;
+          setCurrentIndex(prevIndex);
+          navigate(`/${mediaItems[prevIndex].id}`);
         }
       };
 
-      const formatTime = (time) => {
-        const minutes = Math.floor(time / 60);
-        const seconds = Math.floor(time % 60);
-        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+      const handleNext = () => {
+        if (currentIndex < mediaItems.length - 1) {
+          const nextIndex = currentIndex + 1;
+          setCurrentIndex(nextIndex);
+          navigate(`/${mediaItems[nextIndex].id}`);
+        }
       };
 
-      const isAudio = type === 'mp3' || type === 'wav' || type === 'ogg';
-
-      if (mediaError) {
-        return (
-          <div>
-            <p>Error loading media: {mediaError}</p>
-            {fallbackImage && <img src={fallbackImage} alt="Fallback" style={{ maxWidth: '100px' }} />}
-          </div>
-        );
+      if (loading) {
+        return <p>Loading...</p>;
       }
 
-      if (isAudio) {
-        return (
-          <div className="audio-player">
-            <audio ref={audioRef} src={mediaUrl} />
-            <div className="audio-controls">
-              <button onClick={handlePlayPause}>
-                {isPlaying ? 'Pause' : 'Play'}
-              </button>
-              <input
-                type="range"
-                min="0"
-                max={duration}
-                value={currentTime}
-                onChange={handleSeek}
-              />
-              <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+      if (!mediaItem) {
+        return <p>Media item not found.</p>;
+      }
+
+      const storageUrl = supabase.storage.from('media').getPublicUrl(mediaItem.storage_path).data.publicUrl;
+      const isImage = mediaItem.type === 'image' || mediaItem.type === 'jpeg' || mediaItem.type === 'png' || mediaItem.type === 'jpg' || mediaItem.type === 'webp' || mediaItem.type === 'gif';
+      const isAudio = mediaItem.type === 'mp3' || mediaItem.type === 'wav' || mediaItem.type === 'ogg';
+
+      return (
+        <div className="media-view-container">
+          <div className="media-display">
+            {mediaLoaded && (
+              <span
+                className={`nav-arrow prev ${currentIndex === 0 ? 'disabled' : ''}`}
+                onClick={handlePrev}
+                style={{ display: currentIndex === 0 ? 'none' : 'block' }}
+              >
+                <FontAwesomeIcon icon={faChevronLeft} />
+              </span>
+            )}
+            {isImage ? (
+              <img src={storageUrl} alt={mediaItem.url} className="media-image" onLoad={() => setMediaLoaded(true)} />
+            ) : (
+              <MediaPlayer url={storageUrl} type={mediaItem.type} />
+            )}
+            {mediaLoaded && (
+              <span
+                className={`nav-arrow next ${currentIndex === mediaItems.length - 1 ? 'disabled' : ''}`}
+                onClick={handleNext}
+                style={{ display: currentIndex === mediaItems.length - 1 ? 'none' : 'block' }}
+              >
+                <FontAwesomeIcon icon={faChevronRight} />
+              </span>
+            )}
+          </div>
+          <div className="media-info">
+            <div>
+              <strong>User:</strong>
+              {mediaItem.user}
+            </div>
+            <div>
+              <strong>Type:</strong>
+              {mediaItem.type}
+            </div>
+            <div>
+              <strong>Score:</strong>
+              {mediaItem.score}
             </div>
           </div>
-        );
-      } else {
-        return (
-          <div className="media-player">
-            <video ref={videoRef} controls src={mediaUrl} className="video-player" onError={e => {setMediaError('Failed to load video.'); setFallbackImage('/fallback-image.png')}} />
-            {fallbackImage && <img src={fallbackImage} alt="Fallback" style={{ maxWidth: '100px' }} />}
-          </div>
-        );
-      }
+        </div>
+      );
     }
 
-    export default MediaPlayer;
+    export default MediaView;
