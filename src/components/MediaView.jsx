@@ -12,7 +12,6 @@ import React, { useState, useEffect } from 'react';
       const [mediaItem, setMediaItem] = useState(null);
       const [loading, setLoading] = useState(true);
       const [mediaItems, setMediaItems] = useState([]);
-      const [currentIndex, setCurrentIndex] = useState(0);
       const [mediaLoaded, setMediaLoaded] = useState(false);
       const [mediaError, setMediaError] = useState(null);
 
@@ -31,10 +30,9 @@ import React, { useState, useEffect } from 'react';
               setMediaError('Failed to load media items.');
             } else {
               setMediaItems(data);
-              const index = data.findIndex(item => item.id === parseInt(id));
-              if (index !== -1) {
-                setCurrentIndex(index);
-                setMediaItem(data[index]);
+              const currentItem = data.find(item => item.id === parseInt(id));
+              if (currentItem) {
+                setMediaItem(currentItem);
               } else {
                 setMediaItem(null);
                 console.error('Media item not found');
@@ -58,25 +56,25 @@ import React, { useState, useEffect } from 'react';
         }
       }, [mediaItem]);
 
-      useEffect(() => {
-        if (mediaItems.length > 0 && currentIndex >= 0 && currentIndex < mediaItems.length) {
-          setMediaItem(mediaItems[currentIndex]);
-        }
-      }, [currentIndex, mediaItems]);
-
       const handlePrev = () => {
-        if (currentIndex < mediaItems.length - 1) {
-          const nextIndex = currentIndex + 1;
-          setCurrentIndex(nextIndex);
-          navigate(`/${mediaItems[nextIndex].id}`);
+        if (!mediaItem) return;
+        const currentId = parseInt(mediaItem.id);
+        const prevItem = mediaItems
+          .filter(item => item.id < currentId)
+          .sort((a, b) => b.id - a.id)[0];
+        if (prevItem) {
+          navigate(`/${prevItem.id}`);
         }
       };
 
       const handleNext = () => {
-        if (currentIndex > 0) {
-          const prevIndex = currentIndex - 1;
-          setCurrentIndex(prevIndex);
-          navigate(`/${mediaItems[prevIndex].id}`);
+        if (!mediaItem) return;
+        const currentId = parseInt(mediaItem.id);
+        const nextItem = mediaItems
+          .filter(item => item.id > currentId)
+          .sort((a, b) => a.id - b.id)[0];
+        if (nextItem) {
+          navigate(`/${nextItem.id}`);
         }
       };
 
@@ -101,9 +99,9 @@ import React, { useState, useEffect } from 'react';
           <div className="media-display">
             {mediaLoaded && (
               <span
-                className={`nav-arrow prev ${currentIndex === 0 ? 'disabled' : ''}`}
-                onClick={handleNext}
-                style={{ display: currentIndex === 0 ? 'none' : 'block' }}
+                className={`nav-arrow prev ${!mediaItems.some(item => item.id < parseInt(mediaItem.id)) ? 'disabled' : ''}`}
+                onClick={handlePrev}
+                style={{ display: !mediaItems.some(item => item.id < parseInt(mediaItem.id)) ? 'none' : 'block' }}
               >
                 <FontAwesomeIcon icon={faChevronLeft} />
               </span>
@@ -115,9 +113,9 @@ import React, { useState, useEffect } from 'react';
             )}
             {mediaLoaded && (
               <span
-                className={`nav-arrow next ${currentIndex === mediaItems.length - 1 ? 'disabled' : ''}`}
-                onClick={handlePrev}
-                style={{ display: currentIndex === mediaItems.length - 1 ? 'none' : 'block' }}
+                className={`nav-arrow next ${!mediaItems.some(item => item.id > parseInt(mediaItem.id)) ? 'disabled' : ''}`}
+                onClick={handleNext}
+                style={{ display: !mediaItems.some(item => item.id > parseInt(mediaItem.id)) ? 'none' : 'block' }}
               >
                 <FontAwesomeIcon icon={faChevronRight} />
               </span>
